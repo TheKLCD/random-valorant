@@ -1,9 +1,14 @@
+/*
+This Program was designed to pick a random agent/weapon in the game Valorant
+Please feel free to use this code wherever you want just make sure to give me credit!
+Made by KLCD (Twitter: @TheKLCD, Discord: KLCD)
+*/
+
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.*;
-import java.io.File;
 
 public class Main{
     static int selected = -1; //0 = Agents, 1 = Weapons, -1 neither
@@ -15,7 +20,6 @@ public class Main{
         Color DARK_VIOLET = new Color(84, 78, 97);
         Color GRAY = new Color(207, 212, 197);
         Color SELECTED_GRAY = new Color(207, 212, 197);
-        Color BLACK = new Color(0, 0, 0);
 
         //Create window
         JFrame frame = new JFrame("Random Valorant");
@@ -28,6 +32,8 @@ public class Main{
         frame.setLayout(null);
         frame.setResizable(false);
         frame.getContentPane().setBackground(DARK_VIOLET);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setVisible(true);
         
         ImageIcon icon = new ImageIcon("images\\icon.png");
         frame.setIconImage(icon.getImage());
@@ -40,25 +46,29 @@ public class Main{
         credits.setSize(200, 15);
 
         //Make the two panels
-        JPanel agents = new JPanel();
-        agents.setBackground(DARK_VIOLET);
-        agents.setSize(672, 580);
-        agents.setLocation(64, 140);
-        agents.setVisible(false);
-        agents.setLayout(null);
+        JPanel agentsPanel = new JPanel();
+        agentsPanel.setBackground(DARK_VIOLET);
+        agentsPanel.setSize(672, 580);
+        agentsPanel.setLocation(64, 140);
+        agentsPanel.setVisible(false);
+        agentsPanel.setLayout(null);
 
-        File[] agentIcons = new File("images/agent-icons").listFiles();
+        //Make and store all the agents and their buttons
+        String[] agentNames = {"astra", "breach", "brimstone", "chamber", "cypher", "fade", "gecko", "harbor", "jett", "kayo", "killjoy", "neon", "omen", "pheonix", "raze", "reyna", "sage", "skye", "sova", "viper", "yoru"};
+        Agent[] agents = new Agent[21];
 
-        JButton[] agentProfiles = new JButton[21];
-        Boolean[] agentSelected = new Boolean[21];
+        //Make the agents
+        for(int i = 0; i < agentNames.length; i++){
+          agents[i] = new Agent(agentNames[i]);
+        }
 
+        //Loop through each agent and make their button
         for(int i = 1; i <= 3; i++){
             for(int j = 0; j < 7; j++){
                 int num = (i-1)*7+j;
 
-                JButton button = new JButton(new ImageIcon(agentIcons[num*2].getPath()));
-                agentProfiles[num] = button;
-                agents.add(agentProfiles[num]);
+                JButton button = new JButton(agents[num].getSelectedIcon());
+                agentsPanel.add(button);
 
                 button.setSize(96, 96);
                 button.setLocation(96*j, 96*(i-1));
@@ -66,31 +76,25 @@ public class Main{
 
                 button.addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent e){
+                        //When the button is pressed, activate the agents press method
                         int num = button.getBounds().x/96+button.getBounds().y/96*7;
-                        if(agentSelected[num]){
-                            button.setIcon(new ImageIcon(agentIcons[num*2+1].getPath()));
-                        }
-                        else{
-                            button.setIcon(new ImageIcon(agentIcons[num*2].getPath()));
-                        }
-
-                        agentSelected[num] = !agentSelected[num];
+                        button.setIcon(agents[num].press());
                     }
-                    });
-
-                agentSelected[num] = true;
+                });
             }
         }
 
         //Add the selected agent
         JLabel selectedAgent = new JLabel();
-        agents.add(selectedAgent);
+        agentsPanel.add(selectedAgent);
         selectedAgent.setSize(96, 96);
         selectedAgent.setLocation(340, 350);
+        selectedAgent.setBackground(DARK_VIOLET);
+        selectedAgent.setVisible(true);
         
         //Add select button
         JButton select = new JButton("Select");
-        agents.add(select);
+        agentsPanel.add(select);
         select.setBackground(VIOLET);
         select.setForeground(GRAY);
         select.setSize(200, 100);
@@ -99,37 +103,45 @@ public class Main{
 
         select.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e){
-                int amountOfSelected = 0;
-                selectedAgent.setVisible(true);
+                //When the select button is pressed pick a random agent
 
-                for(boolean active:agentSelected){
-                    if(active){
+                //Count the amount of agents currently selected
+                int amountOfSelected = 0;
+
+                for(Agent agent:agents){
+                    if(agent.isSelected()){
                         amountOfSelected++;
                     }
                 }
 
+                //If there are none selected, show no agent
                 if(amountOfSelected == 0){
                     selectedAgent.setIcon(null);
                     return;
                 }
 
+                //Pick a random number from 0 to the number of agents selected
                 int random = (int)(Math.random()*amountOfSelected);
 
+                //Loop through all the agents
                 for(int i = 0; i < 21; i++){
-                    if(agentSelected[i] && random > 0){
+                    if(agents[i].isSelected() && random > 0){
+                        //If that agent is selected but random is greater then 0, remove one from random
                         random--;
                     }
-                    else if(agentSelected[i]){
-                        selectedAgent.setIcon(new ImageIcon(agentIcons[i*2].getPath()));;
+                    else if(agents[i].isSelected()){
+                        //Otherwise, pick that agent
+                        selectedAgent.setIcon(agents[i].getSelectedIcon());;
                         return;
                     }
                 }
             }
         });
 
-        frame.add(agents);
+        //Add the agent panel to the window
+        frame.add(agentsPanel);
 
-        //Add weapons pannel
+        //Add weapons panel
         JPanel weapons = new JPanel();
         weapons.setBackground(SELECTED_VIOLET);
         weapons.setSize(644, 580);
@@ -156,7 +168,7 @@ public class Main{
                 //Change button to show it's selected
                 agentsButton.setBackground(SELECTED_VIOLET);
                 agentsButton.setForeground(SELECTED_GRAY);
-                agents.setVisible(true);
+                agentsPanel.setVisible(true);
                 selected = 0;
                 }
         });
@@ -172,7 +184,7 @@ public class Main{
                 if(selected == 0){
                     agentsButton.setBackground(VIOLET);
                     agentsButton.setForeground(GRAY);
-                    agents.setVisible(false);
+                    agentsPanel.setVisible(false);
                 }
 
                 //Change button to show it's selected
@@ -183,6 +195,7 @@ public class Main{
                 }
         });
 
+        //Agents button settings
         frame.add(agentsButton);
         agentsButton.setLocation(80, 20);
         agentsButton.setSize(300, 100);
@@ -190,14 +203,12 @@ public class Main{
         agentsButton.setBorderPainted(false);
         agentsButton.setForeground(GRAY);
 
+        //Weapons button settings
         frame.add(weaponsButton);
         weaponsButton.setLocation(420, 20);
         weaponsButton.setSize(300, 100);
         weaponsButton.setBackground(VIOLET);
         weaponsButton.setBorderPainted(false);
         weaponsButton.setForeground(GRAY);
-
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setVisible(true);
     }
 }
