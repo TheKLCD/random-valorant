@@ -15,6 +15,7 @@ public class Main{
         Color DARK_VIOLET = new Color(84, 78, 97);
         Color GRAY = new Color(207, 212, 197);
         Color SELECTED_GRAY = new Color(207, 212, 197);
+        Color BLACK = new Color(0, 0, 0);
 
         //Create window
         JFrame frame = new JFrame("Random Valorant");
@@ -38,9 +39,9 @@ public class Main{
         credits.setLocation(320, 730);
         credits.setSize(200, 15);
 
-        //Make the two pannels
+        //Make the two panels
         JPanel agents = new JPanel();
-        agents.setBackground(GRAY);
+        agents.setBackground(DARK_VIOLET);
         agents.setSize(672, 580);
         agents.setLocation(64, 140);
         agents.setVisible(false);
@@ -80,10 +81,55 @@ public class Main{
                 agentSelected[num] = true;
             }
         }
+
+        //Add the selected agent
+        JLabel selectedAgent = new JLabel();
+        agents.add(selectedAgent);
+        selectedAgent.setSize(96, 96);
+        selectedAgent.setLocation(340, 350);
         
+        //Add select button
+        JButton select = new JButton("Select");
+        agents.add(select);
+        select.setBackground(VIOLET);
+        select.setForeground(GRAY);
+        select.setSize(200, 100);
+        select.setLocation(120, 350);
+        select.setBorderPainted(false);
+
+        select.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e){
+                int amountOfSelected = 0;
+                selectedAgent.setVisible(true);
+
+                for(boolean active:agentSelected){
+                    if(active){
+                        amountOfSelected++;
+                    }
+                }
+
+                if(amountOfSelected == 0){
+                    selectedAgent.setIcon(null);
+                    return;
+                }
+
+                int random = (int)(Math.random()*amountOfSelected);
+
+                for(int i = 0; i < 21; i++){
+                    if(agentSelected[i] && random > 0){
+                        random--;
+                    }
+                    else if(agentSelected[i]){
+                        selectedAgent.setIcon(new ImageIcon(agentIcons[i*2].getPath()));;
+                        return;
+                    }
+                }
+            }
+        });
 
         frame.add(agents);
 
+        //Add weapons pannel
         JPanel weapons = new JPanel();
         weapons.setBackground(SELECTED_VIOLET);
         weapons.setSize(644, 580);
